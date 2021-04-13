@@ -3,6 +3,9 @@ import numpy as np
 from collections import OrderedDict
 import face_recognition
 
+#KNOWN BUGS
+#The program does not terminate when asked, needing a hard stop using the IDE.
+
 #A class that tracks objects on a screen
 class ObjectTracker:
 
@@ -145,6 +148,10 @@ def Main():
     #init a object tracking class
     OT = ObjectTracker(maxDissapeared=20, IDString="face #")
 
+    #This is the number of frames to miss, adjust for FPS gains
+    numberOfFrames = 2
+
+    frameCount = 1
     while cap.isOpened():
         #Capture frame-by-frame
         ret, frame = cap.read()
@@ -155,10 +162,17 @@ def Main():
         #gray = cv2.equalizeHist(gray)
         #faces = face_cascade.detectMultiScale(gray)
 
-        faces = face_recognition.face_locations(gray, model='hog')
-        OT.update(faces)
+        #Slowed down the tracking to increase the frame rate 
+
+        if frameCount % numberOfFrames == 0:
+            faces = face_recognition.face_locations(gray, model='hog')
+            OT.update(faces)
+
+            #Reset the frame count so the number doesn't get too large for long videos
+            frameCount = 0
         frame = OT.DrawObjects(frame)
         cv2.imshow("Face-Tracker", frame)
+        frameCount += 1
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
